@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ReputationNet</string>
+    <string name="title_activity_login_activitiy">LoginActivitiy</string>
 </resources>
