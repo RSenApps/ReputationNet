@@ -9,8 +9,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     MessageListener listener;
     Message message;
 
+    String addressToSendTo = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,45 +80,66 @@ public class MainActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.name)).setText(prefs.getString("name", ""));
         ((TextView) findViewById(R.id.title)).setText(prefs.getString("title", ""));
-        findViewById(R.id.rate).setOnClickListener(new View.OnClickListener() {
+        /*findViewById(R.id.rate).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TranslateAnimation animate = new TranslateAnimation(
-                        0,                 // fromXDelta
-                        0,                 // toXDelta
-                        0,                 // fromYDelta
-                        v.getHeight()); // toYDelta
-                animate.setDuration(500);
-                animate.setFillAfter(true);
-                v.startAnimation(animate);
-                buttonHidden = true;
-                sendRating("0x02a17c4a884a8060B16958984b56744a362289FB", (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating());
+                v.setVisibility(View.INVISIBLE);
+                sendRating(addressToSendTo, (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating());
+                Toast.makeText(MainActivity.this, "Submitted Rating", Toast.LENGTH_SHORT).show();
 
                 ((MaterialRatingBar) findViewById(R.id.rating)).setRating(0);
 
             }
-        });
+        });*/
         ((MaterialRatingBar) findViewById(R.id.rating)).setOnRatingChangeListener(new MaterialRatingBar.OnRatingChangeListener() {
             @Override
             public void onRatingChanged(MaterialRatingBar ratingBar, float rating) {
                 // Prepare the View for the animation
+                if (addressToSendTo.equals("")) {
+                    Toast.makeText(MainActivity.this, "Select user to rate first.", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 View view = findViewById(R.id.rate);
                 if (buttonHidden && rating > 0) {
                     buttonHidden = false;
                     view.setVisibility(View.VISIBLE);
-                    TranslateAnimation animate = new TranslateAnimation(
-                            0,                 // fromXDelta
-                            0,                 // toXDelta
-                            view.getHeight(),  // fromYDelta
-                            0);                // toYDelta
-                    animate.setDuration(500);
-                    animate.setFillAfter(true);
-                    view.startAnimation(animate);
                 }
             }
         });
 
-        final MySimpleArrayAdapter adapter = new MySimpleArrayAdapter(this, new ArrayList<MySimpleArrayAdapter.Data>());
+        findViewById(R.id.rate).setOnTouchListener(new View.OnTouchListener() {
+           /* @Override
+            public void onSwipeUp() {
+                if (addressToSendTo.equals("")) {
+                    return;
+                }
+                View v = findViewById(R.id.rate);
+                Toast.makeText(MainActivity.this, "Submitted Rating", Toast.LENGTH_SHORT).show();
+                v.setVisibility(View.INVISIBLE);
+                buttonHidden = true;
+                sendRating(addressToSendTo, (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating());
+
+                ((MaterialRatingBar) findViewById(R.id.rating)).setRating(0);
+            }
+*/
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                int rating = (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating();
+                if (addressToSendTo.equals("") && rating > 0) {
+                    return false;
+                }
+                View v = findViewById(R.id.rate);
+                Toast.makeText(MainActivity.this, "Submitted Rating", Toast.LENGTH_SHORT).show();
+                v.setVisibility(View.INVISIBLE);
+                buttonHidden = true;
+                sendRating(addressToSendTo, rating);
+
+                ((MaterialRatingBar) findViewById(R.id.rating)).setRating(0);
+                return false;
+            }
+        });
+
+            final MySimpleArrayAdapter adapter = new MySimpleArrayAdapter(this, new ArrayList<MySimpleArrayAdapter.Data>());
         ((ListView) findViewById(R.id.feed)).setAdapter(adapter);
 
         listener = new MessageListener() {
@@ -140,6 +165,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("test", "Lost sight of message: " + new String(message.getContent()));
             }
         };
+
+        ((ListView) findViewById(R.id.feed)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,long arg3) {
+                view.setSelected(true);
+                addressToSendTo = adapter.values.get(position).address;
+
+            }
+        });
 
         String m = credentials.getAddress() + ", " + prefs.getString("name", "") + ", " + prefs.getString("title", "");
         message = new Message(m.getBytes());
@@ -287,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
 
                     for (EthLog.LogResult l : ethLog.getLogs()) {
                         Repnet.RateEventEventResponse e = contract[0].getRateEventEvent((org.web3j.protocol.core.methods.response.Log) l);
-                        if (e.sender.equals(credentials.getAddress())) {
+                        if (e.receipient.equals(credentials.getAddress())) {
                             Log.d("test", e.receipient + ", " + e.sender + ", " + e.score);
                            return e;
                         }
