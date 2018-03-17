@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     Message message;
 
     String addressToSendTo = "";
+    MySimpleArrayAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-            final MySimpleArrayAdapter adapter = new MySimpleArrayAdapter(this, new ArrayList<MySimpleArrayAdapter.Data>());
+        adapter = new MySimpleArrayAdapter(this, new ArrayList<MySimpleArrayAdapter.Data>());
         ((ListView) findViewById(R.id.feed)).setAdapter(adapter);
 
         listener = new MessageListener() {
@@ -322,17 +323,18 @@ public class MainActivity extends AppCompatActivity {
         private Exception exception;
 
         protected Float doInBackground(String... address) {
-            try {
-                Log.d("test", "rep" + address[0]);
-                NetClient nc = new NetClient("ec2-54-165-241-160.compute-1.amazonaws.com", 1234);
+            while (true) {
+                try {
+                    Log.d("test", "rep" + address[0]);
+                    NetClient nc = new NetClient("ec2-54-165-241-160.compute-1.amazonaws.com", 1234);
 
-                nc.sendDataWithString(address[0] + "\n");
-                Log.d("test", "sent");
-                return Float.parseFloat(nc.receiveDataFromServer());
-            } catch (Exception e) {
-                e.printStackTrace();
+                    nc.sendDataWithString(address[0] + "\n");
+                    Log.d("test", "sent");
+                    return Float.parseFloat(nc.receiveDataFromServer());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-            return null;
         }
 
         protected void onPostExecute(Float result) {
@@ -396,6 +398,12 @@ public class MainActivity extends AppCompatActivity {
             i.putExtra("sender", event.sender);
             i.putExtra("recipient", event.receipient);
             i.putExtra("score", event.score.intValue());
+            for (int x = 0; x < adapter.values.size(); x++) {
+                if (adapter.values.get(x).address.equals(event.sender)) {
+                    i.putExtra("name", adapter.values.get(x).address);
+                    break;
+                }
+            }
             startActivity(i);
         }
     }
