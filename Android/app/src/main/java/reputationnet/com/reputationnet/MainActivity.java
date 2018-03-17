@@ -400,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
             i.putExtra("score", event.score.intValue());
             for (int x = 0; x < adapter.values.size(); x++) {
                 if (adapter.values.get(x).address.equals(event.sender)) {
-                    i.putExtra("name", adapter.values.get(x).address);
+                    i.putExtra("name", adapter.values.get(x).name);
                     break;
                 }
             }
