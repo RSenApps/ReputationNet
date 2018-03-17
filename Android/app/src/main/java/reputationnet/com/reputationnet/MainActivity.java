@@ -57,6 +57,8 @@ import rx.functions.Action1;
 public class MainActivity extends AppCompatActivity {
     boolean buttonHidden = true;
     AsyncTask pollingTask;
+    AsyncTask reputationTask;
+
     Credentials credentials;
 
     String contractAddress = "0x35d38490eE059e94BCC062dB965Ab45871637A9c";
@@ -125,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 int rating = (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating();
-                if (addressToSendTo.equals("") && rating > 0) {
+                if (addressToSendTo.equals("")  || rating == 0) {
                     return false;
                 }
                 View v = findViewById(R.id.rate);
@@ -177,6 +179,14 @@ public class MainActivity extends AppCompatActivity {
 
         String m = credentials.getAddress() + ", " + prefs.getString("name", "") + ", " + prefs.getString("title", "");
         message = new Message(m.getBytes());
+
+        ((TextView) findViewById(R.id.reputation)).setText("?");
+        ((TextView) findViewById(R.id.reputation)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reputationTask = new UpdateReputation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, credentials.getAddress());
+            }
+        });
     }
 
     @Override
@@ -184,6 +194,9 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Web3j web3j = Web3jFactory.build(new HttpService("https://ropsten.infura.io/ovliA0eGnH5yI2KdpbxX"));
         Repnet contract = Repnet.load(contractAddress, web3j, credentials, BigInteger.valueOf(11), BigInteger.valueOf(100000));
+
+        Log.d("test123", credentials.getAddress());
+        reputationTask = new UpdateReputation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, credentials.getAddress());
         pollingTask = new PollRatingsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, contract);
 
         /*
@@ -226,6 +239,13 @@ public class MainActivity extends AppCompatActivity {
                 log.
             }
         });*/
+    }
+
+    @Override
+    protected void onPause() {
+        reputationTask.cancel(true);
+        pollingTask.cancel(true);
+        super.onPause();
     }
 
     @Override
@@ -294,6 +314,29 @@ public class MainActivity extends AppCompatActivity {
             if (receipt != null) {
                 Log.d("test", receipt.toString());
             }
+        }
+    }
+
+    class UpdateReputation extends AsyncTask<String, Void, Float> {
+
+        private Exception exception;
+
+        protected Float doInBackground(String... address) {
+            try {
+                Log.d("test", "rep" + address[0]);
+                NetClient nc = new NetClient("ec2-54-165-241-160.compute-1.amazonaws.com", 1234);
+
+                nc.sendDataWithString(address[0] + "\n");
+                Log.d("test", "sent");
+                return Float.parseFloat(nc.receiveDataFromServer());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(Float result) {
+            ((TextView) findViewById(R.id.reputation)).setText("" + result);
         }
     }
 

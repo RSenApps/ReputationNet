@@ -1,13 +1,16 @@
 package reputationnet.com.reputationnet;
 
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -31,6 +34,39 @@ public class RatedActivity extends AppCompatActivity {
         }
         if (mediaPlayer != null) {
             mediaPlayer.start();
+        }
+
+        TextView rep = (TextView) findViewById(R.id.rep);
+        rep.setText("?");
+        new UpdateReputation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getIntent().getStringExtra("receiver"));
+
+        rep.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new UpdateReputation().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, getIntent().getStringExtra("receiver"));
+                Toast.makeText(RatedActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    class UpdateReputation extends AsyncTask<String, Void, Float> {
+
+        private Exception exception;
+
+        protected Float doInBackground(String... address) {
+            try {
+                Log.d("test", "rep");
+                NetClient nc = new NetClient("ec2-54-165-241-160.compute-1.amazonaws.com", 1234);
+                nc.sendDataWithString(address[0]);
+                return Float.parseFloat(nc.receiveDataFromServer());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(Float result) {
+            ((TextView) findViewById(R.id.rep)).setText("" + result);
         }
     }
 
