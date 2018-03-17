@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.name)).setText(prefs.getString("name", ""));
         ((TextView) findViewById(R.id.title)).setText(prefs.getString("title", ""));
-        findViewById(R.id.rate).setOnClickListener(new View.OnClickListener() {
+        /*findViewById(R.id.rate).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 v.setVisibility(View.INVISIBLE);
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 ((MaterialRatingBar) findViewById(R.id.rating)).setRating(0);
 
             }
-        });
+        });*/
         ((MaterialRatingBar) findViewById(R.id.rating)).setOnRatingChangeListener(new MaterialRatingBar.OnRatingChangeListener() {
             @Override
             public void onRatingChanged(MaterialRatingBar ratingBar, float rating) {
@@ -124,14 +124,15 @@ public class MainActivity extends AppCompatActivity {
 */
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (addressToSendTo.equals("")) {
+                int rating = (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating();
+                if (addressToSendTo.equals("") && rating > 0) {
                     return false;
                 }
                 View v = findViewById(R.id.rate);
                 Toast.makeText(MainActivity.this, "Submitted Rating", Toast.LENGTH_SHORT).show();
                 v.setVisibility(View.INVISIBLE);
                 buttonHidden = true;
-                sendRating(addressToSendTo, (int) ((MaterialRatingBar) findViewById(R.id.rating)).getRating());
+                sendRating(addressToSendTo, rating);
 
                 ((MaterialRatingBar) findViewById(R.id.rating)).setRating(0);
                 return false;
