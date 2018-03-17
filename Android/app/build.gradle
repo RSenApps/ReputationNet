@@ -27,7 +27,7 @@ dependencies {
     implementation 'com.android.support:design:26.1.0'
     compile 'com.obsez.android.lib.filechooser:filechooser:1.1.6'
     compile 'me.zhanghai.android.materialratingbar:library:1.2.0'
-
+    compile 'org.slf4j:slf4j-nop:1.7.25'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
