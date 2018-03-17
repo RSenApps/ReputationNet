@@ -218,10 +218,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class PollRatingsTask extends AsyncTask<Repnet, Void, Void> {
+    class PollRatingsTask extends AsyncTask<Repnet, Repnet.RateEventEventResponse, Repnet.RateEventEventResponse> {
         Subscription subscription;
 
-        protected Void doInBackground(final Repnet... contract) {
+        protected Repnet.RateEventEventResponse doInBackground(final Repnet... contract) {
             final Event event = new Event("RateEvent",
                     Arrays.<TypeReference<?>>asList(),
                     Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}, new TypeReference<Uint8>() {}));
@@ -244,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
                         Repnet.RateEventEventResponse e = contract[0].getRateEventEvent((org.web3j.protocol.core.methods.response.Log) l);
                         if (e.sender.equals(credentials.getAddress())) {
                             Log.d("test", e.receipient + ", " + e.sender + ", " + e.score);
+                           return e;
                         }
                         Log.d("test, but no good", e.receipient + ", " + e.sender + ", " + e.score);
                     }
@@ -268,14 +269,12 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            //subscription.unsubscribe();
-        }
-
-        protected void onPostExecute(Void receipt) {
-
+        protected void onPostExecute(Repnet.RateEventEventResponse event) {
+            Intent i = new Intent(MainActivity.this, RatedActivity.class);
+            i.putExtra("sender", event.sender);
+            i.putExtra("recipient", event.receipient);
+            i.putExtra("score", event.score.intValue());
+            startActivity(i);
         }
     }
 }
