@@ -1,3 +1,5 @@
+package repnet;
+
 import java.util.*;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.pow;
@@ -23,7 +25,12 @@ import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 
+import java.math.BigInteger;
+
+
 public class EigenTrust {
+	
+
 	
     // return B = A^T
     public static double[][] transpose(double[][] a) {
@@ -76,22 +83,25 @@ public class EigenTrust {
 		return b;
 	}
 	
-    private void getRatings() throws Exception {
-
+    private static void getRatings() throws Exception {
+    	
         // We start by creating a new web3j instance to connect to remote nodes on the network.
         // Note: if using web3j Android, use Web3jFactory.build(...
-        Web3j web3j = Web3j.build(new HttpService(
-                "https://rinkeby.infura.io/<your token>"));  // FIXME: Enter your Infura token here;
-        System.out.println("Connected to Ethereum client version: "
-                + web3j.web3ClientVersion().send().getWeb3ClientVersion());
+        Web3j web3j = Web3j.build(new HttpService());  // FIXME: Enter your Infura token here;
+        //"https://ropsten.infura.io/ovliA0eGnH5yI2KdpbxX"
+        //System.out.println("Connected to Ethereum client version: "+ web3j.web3ClientVersion().send().getWeb3ClientVersion());
 
         // We then need to load our Ethereum wallet file
         // FIXME: Generate a new wallet file using the web3j command line tools https://docs.web3j.io/command_line.html
-        Credentials credentials =
-                WalletUtils.loadCredentials(
-                        "<password>",
-                        "/path/to/<walletfile>");
-        System.out.println("Credentials loaded");
+        Credentials credentials = WalletUtils.loadCredentials("reputation", "walletfile");
+        System.out.println("Credentials loaded");      
+        
+        //web3j solidity generate [--javaTypes|--solidityTypes] /path/to/<smart-contract>.bin /path/to/<smart-contract>.abi -o /path/to/src/main/java -p com.your.organisation.name
+        BigInteger bi = BigInteger.valueOf(10);
+        Repnet contract = Repnet.load("0x<address>|<ensName>", web3j, credentials, bi, bi);
+        TransactionReceipt transactionReceipt = new TransactionReceipt();
+        List<Repnet.RateEventEventResponse> res = contract.getRateEventEvents(transactionReceipt);
+        
         
         //call mike's contract
     }
@@ -131,10 +141,11 @@ public class EigenTrust {
 		}		
 		return t;		
 	}
+	
 
-	public static void main(String[] args) {
-		System.out.println("Hello Word");
-
+	public static void main(String[] args) throws Exception {
+		getRatings();
+		
 	}
 	
 	
