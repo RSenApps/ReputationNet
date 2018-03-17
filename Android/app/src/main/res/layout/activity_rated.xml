@@ -12,7 +12,7 @@
         android:id="@+id/rep"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="60sp"
+        android:textSize="80sp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="60dp"
         android:text="4.5" />
@@ -23,6 +23,8 @@
         android:textSize="60sp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="40dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:gravity="center_horizontal"
         android:text="You've been rated" />
 
@@ -34,6 +36,7 @@
         android:maxHeight="80dp"
         android:minHeight="80dp"
         android:paddingTop="15dp"
+        android:paddingBottom="15dp"
         android:paddingLeft="30dp"
         android:paddingRight="30dp"
         android:stepSize="1" />
@@ -42,7 +45,9 @@
         android:id="@+id/sender"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="40sp"
+        android:textSize="30sp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp"
         android:gravity="center_horizontal"

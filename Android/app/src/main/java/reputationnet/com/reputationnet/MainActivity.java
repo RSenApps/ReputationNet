@@ -11,8 +11,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.TranslateAnimation;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.messages.Message;
+import com.google.android.gms.nearby.messages.MessageListener;
 
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
@@ -53,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
 
     String contractAddress = "0x35d38490eE059e94BCC062dB965Ab45871637A9c";
 
+    MessageListener listener;
+    Message message;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
+            return;
         }
 
         ((TextView) findViewById(R.id.name)).setText(prefs.getString("name", ""));
@@ -105,7 +114,35 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        final MySimpleArrayAdapter adapter = new MySimpleArrayAdapter(this, new ArrayList<MySimpleArrayAdapter.Data>());
+        ((ListView) findViewById(R.id.feed)).setAdapter(adapter);
 
+        listener = new MessageListener() {
+            @Override
+            public void onFound(Message message) {
+                Log.d("test", "Found message: " + new String(message.getContent()));
+                String msg = new String(message.getContent());
+                MySimpleArrayAdapter.Data d = new MySimpleArrayAdapter.Data();
+                d.address = msg.split(",")[0];
+                d.name = msg.split(",")[1];
+                d.title = msg.split(",")[2];
+                for (MySimpleArrayAdapter.Data x : adapter.values) {
+                    if (x.address.equals(d.address)) {
+                        return;
+                    }
+                }
+                adapter.values.add(d);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onLost(Message message) {
+                Log.d("test", "Lost sight of message: " + new String(message.getContent()));
+            }
+        };
+
+        String m = credentials.getAddress() + ", " + prefs.getString("name", "") + ", " + prefs.getString("title", "");
+        message = new Message(m.getBytes());
     }
 
     @Override
@@ -158,9 +195,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStart() {
+        super.onStart();
+        Nearby.getMessagesClient(this).publish(message);
+        Nearby.getMessagesClient(this).subscribe(listener);
+    }
 
+    @Override
+    protected void onStop() {
+        Nearby.getMessagesClient(this).unpublish(message);
+        Nearby.getMessagesClient(this).unsubscribe(listener);
+        super.onStop();
     }
 
     // create an action bar button
