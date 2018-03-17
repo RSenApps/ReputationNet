@@ -224,12 +224,12 @@ public class EigenTrust {
 		
 		for(int i = 0; i < num_users; i ++) {
 			for(int j = 0; j < num_users; j ++) {
-				System.out.print(converted_ratings[i][j]);
+				System.out.print(converted_ratings[i][j] + " ");
 			}
 			System.out.println();
 		}
 		
-		double[] scores = computeRating(converted_ratings, 0.1, "");
+		double[] scores = computeRating(converted_ratings, 0.001, "");
 		for(double s : scores) {
 			double print_val = s * 5.0;
 			System.out.println("Score " + s + " " + print_val);
