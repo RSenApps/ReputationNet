@@ -190,6 +190,7 @@ public class EigenTrust {
 		return t;		
 	}
 	
+	
 
 	public static void main(String[] args) throws Exception {
 		List<Repnet.RateEventEventResponse> ratings = getRatings();
@@ -230,9 +231,13 @@ public class EigenTrust {
 		}
 		
 		double[] scores = computeRating(converted_ratings, 0.001, "");
+		double max = 0;
 		for(double s : scores) {
-			double print_val = s * 5.0;
-			System.out.println("Score " + s + " " + print_val);
+			if(s > max) max = s;
+		}
+		for(double s : scores) {
+		    double score = ((int)(s/max * 500.0))/100.0;
+			System.out.println("Score " + s + " " + score);
 		}
 
 	}
