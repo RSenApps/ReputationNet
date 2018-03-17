@@ -146,14 +146,16 @@ public class EigenTrust {
         //call mike's contract
     }
 	
-	public static double[] computeRating(int ratings[][], double error, String user) {
+	public static double[] computeRating(double ratings[][], double error, String user) {
 		
 		int num_peers = ratings.length;
+		
+		double def = 1.0/num_peers;
 		
 		//Initialize t 
 		double[] t = new double[num_peers];
 		for(int i = 0; i < num_peers; i ++) {
-			t[i] = 1.0/num_peers;
+			t[i] = def;
 		}
 		
 		double e = Double.MAX_VALUE;
@@ -165,13 +167,14 @@ public class EigenTrust {
 			for(int i = 0; i < rows; i ++) {
 				for(int j = 0; j < cols; j ++) {
 					double sum = 0;;
-					for(int x = 0; x < rows; x ++) {
-						sum = sum + max(0, ratings[x][j]);
+					for(int x = 0; x < cols; x ++) {
+						sum = sum + max(0, ratings[i][x]);
 					}
 					if(sum > 0) C[i][j] = max(0, ratings[i][j])/sum;
+					else C[i][j] = def;
 				}
 			}
-			
+			System.out.println("C VALUES");
 			for(int i = 0; i < rows; i ++) {
 				for(int j = 0; j < cols; j ++) {
 					System.out.print(C[i][j] + " " );
@@ -181,7 +184,6 @@ public class EigenTrust {
 			
 			double[][] C_t = transpose(C);
 			double[] t_new = multiply(C_t, t);
-			
 			e = distance(t_new, t);
 			t = t_new;			
 		}		
@@ -207,7 +209,7 @@ public class EigenTrust {
 		}
 		
 		//INITIALIZE SCORES TO ZERO 
-		int[][] converted_ratings = new int[num_users][num_users];
+		double[][] converted_ratings = new double[num_users][num_users];
 		for(int i = 0; i < num_users; i ++) {
 			for(int j = 0; j < num_users; j ++) {
 				converted_ratings[i][j] = 0;
@@ -217,7 +219,7 @@ public class EigenTrust {
 		for(Repnet.RateEventEventResponse r : ratings) {
 			int i = user_to_index.get(r.sender);
 			int j = user_to_index.get(r.receipient);
-			converted_ratings[i][j] = r.score.intValue();
+			converted_ratings[i][j] = (r.score.intValue())/5.0;
 		}
 		
 		for(int i = 0; i < num_users; i ++) {
@@ -227,13 +229,12 @@ public class EigenTrust {
 			System.out.println();
 		}
 		
-		double[] scores = computeRating(converted_ratings, 0.5, "");
-		for(double s : scores) System.out.println("Score " + s);
-		
-		
-	}
-	
-	
+		double[] scores = computeRating(converted_ratings, 0.1, "");
+		for(double s : scores) {
+			double print_val = s * 5.0;
+			System.out.println("Score " + s + " " + print_val);
+		}
 
+	}
 }
 
