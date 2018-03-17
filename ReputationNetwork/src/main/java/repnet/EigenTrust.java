@@ -3,7 +3,10 @@ package repnet;
 import java.util.*;
 import static java.lang.Math.sqrt;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 import static java.lang.Math.pow;
 
@@ -40,6 +43,8 @@ import org.web3j.utils.Numeric;
 import repnet.Repnet.RateEventEventResponse;
 
 import java.math.BigInteger;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 
 public class EigenTrust {
@@ -190,21 +195,23 @@ public class EigenTrust {
 		return t;		
 	}
 	
-	
-
-	public static void main(String[] args) throws Exception {
+		
+	public static double get_user_score(String user) throws Exception {
 		List<Repnet.RateEventEventResponse> ratings = getRatings();
 		
 		
 		Map<String, Integer> user_to_index = new HashMap<String, Integer>();
+		Map<Integer, String> index_to_user = new HashMap<Integer, String>();
 		int num_users = 0;
 		for(Repnet.RateEventEventResponse r : ratings) {
 			if(!user_to_index.containsKey(r.sender)) {
 				user_to_index.put(r.sender, num_users);
+				index_to_user.put(num_users, r.sender);
 				num_users ++;
 			}
 			if(!user_to_index.containsKey(r.receipient)) {
 				user_to_index.put(r.receipient, num_users);
+				index_to_user.put(num_users, r.receipient);
 				num_users ++;
 			}
 		}
@@ -235,9 +242,34 @@ public class EigenTrust {
 		for(double s : scores) {
 			if(s > max) max = s;
 		}
-		for(double s : scores) {
-		    double score = ((int)(s/max * 500.0))/100.0;
-			System.out.println("Score " + s + " " + score);
+		
+		Map<String, Double> user_scores = new HashMap<String, Double>();
+		for(int i = 0; i < scores.length; i ++) {
+		    double score = ((int)(scores[i]/max * 500.0))/100.0;
+		    
+		    String u = index_to_user.get(i);
+		    user_scores.put(u, score);
+			System.out.println("User " + user + " score " + score);
+		}
+		return user_scores.get(user);
+	}
+
+	public static void main(String[] args) throws Exception {
+		int portNumber = 1234;
+		
+		try (
+			    ServerSocket serverSocket = new ServerSocket(portNumber);
+			    Socket clientSocket = serverSocket.accept();
+			    PrintWriter out =
+			        new PrintWriter(clientSocket.getOutputStream(), true);
+			    BufferedReader in = new BufferedReader(
+			        new InputStreamReader(clientSocket.getInputStream()));
+			) {
+			    String inputLine;
+			    while ((inputLine = in.readLine()) != null) {
+			        double score = get_user_score(inputLine);
+			        out.println(score);
+			    }
 		}
 
 	}
